@@ -1,21 +1,26 @@
-# TransitGuardRAG: Pinecone + Claude RAG API + Railway Cloud
+# TransitGuardRAG
 
-## Overview
+**RAG-powered safety chatbot for Chicago transit.**
 
-This project provides a FastAPI-based API for querying a Pinecone vector database using embedding vectors and generating answers with Anthropic's Claude Haiku 3 model. It includes scripts for embedding questions, querying the API, and is ready for deployment on Railway.
+Backend API for the [TransitGuard](https://github.com/foxintheloop/TransitGuard) platform. Uses Pinecone vector search and Claude Haiku 3 to answer natural language questions about CTA safety incidents, station risk levels, and real-time crime data.
 
----
+## Example Queries
 
-## Features
-- **/query endpoint:** Accepts a POST request with an embedding vector and question, returns a generated answer and sources.
-- **/health endpoint:** Simple health check for the API.
-- **Special queries:**
-  - Total number of crimes today
-  - Total number of traffic accidents today
-  - Safest line in the last 7 days
-  - Closest/nearby stations
-- **Python client script:** Converts a question to an embedding and queries the API (local or Railway).
-- **Dockerized & Railway-ready:** Easily build and run the API in a container or deploy to Railway.
+- *"What are the stations near me?"*
+- *"Total number of crimes today"*
+- *"Safest line in the last 7 days"*
+- *"Traffic accidents near Clark/Lake"*
+
+## Architecture
+```
+Question → SentenceTransformer (all-MiniLM-L6-v2) → Embedding
+                                                      ↓
+                                              Pinecone Vector Search
+                                                      ↓
+                                              Top-K Context Chunks
+                                                      ↓
+                                              Claude Haiku 3 → Answer
+```
 
 ---
 
