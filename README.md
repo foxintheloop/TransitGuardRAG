@@ -9,9 +9,10 @@ Backend API for the [TransitGuard](https://github.com/foxintheloop/TransitGuard)
 - *"What are the stations near me?"*
 - *"Total number of crimes today"*
 - *"Safest line in the last 7 days"*
-- *"Traffic accidents near Clark/Lake"*
+- *"Total number of traffic accidents today"*
 
 ## Architecture
+
 ```
 Question → SentenceTransformer (all-MiniLM-L6-v2) → Embedding
                                                       ↓
@@ -24,45 +25,59 @@ Question → SentenceTransformer (all-MiniLM-L6-v2) → Embedding
 
 ---
 
+## Features
+
+- **/query endpoint:** Accepts a POST request with an embedding vector and question, returns a generated answer and sources.
+- **/health endpoint:** Simple health check for the API.
+- **Special queries:** Crime totals, traffic accidents, safest lines, nearby stations
+- **Python client script:** Converts a question to an embedding and queries the API (local or Railway).
+- **Dockerized & Railway-ready:** Easily build and run the API in a container or deploy to Railway.
+
+---
+
 ## Project Structure
+
 ```
 TransitGuardRAG/
 │
-├── main.py                  # FastAPI app for Pinecone + Claude querying
-├── query_pinecone.py        # Python script to embed a question and query local API
-├── railway_query_pinecone.py# Python script to query deployed Railway API
+├── main.py                   # FastAPI app for Pinecone + Claude querying
+├── query_pinecone.py         # Python script to embed a question and query local API
+├── railway_query_pinecone.py # Python script to query deployed Railway API
 ├── requirements.txt
 ├── Dockerfile
-├── start.sh                 # Entrypoint for Railway
+├── start.sh                  # Entrypoint for Railway
 ├── README.md
-└── .env                     # Environment variables (not committed)
+└── .env                      # Environment variables (not committed)
 ```
 
 ---
 
-## Setup Instructions
+## Quick Start
 
 ### 1. Clone the Repository
+
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/foxintheloop/TransitGuardRAG.git
 cd TransitGuardRAG
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 3. Environment Variables
-Create a `.env` file in the root directory with the following:
+
+Create a `.env` file in the root directory:
+
 ```
 PINECONE_API_KEY=your-pinecone-api-key
 CLAUDE_API_KEY=your-anthropic-claude-api-key
 ```
 
----
+### 4. Run Locally
 
-## Running the API Locally
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
@@ -71,7 +86,6 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 ## Docker Deployment
 
-### Build and Run
 ```bash
 docker build -t transitguardrag .
 docker run --env-file .env -p 8000:8000 transitguardrag
@@ -81,21 +95,20 @@ docker run --env-file .env -p 8000:8000 transitguardrag
 
 ## Railway Deployment
 
-1. **Ensure your repo is connected to Railway.**
-2. **Set environment variables** (`PINECONE_API_KEY`, `CLAUDE_API_KEY`) in the Railway dashboard.
-3. **Dockerfile** and **start.sh** are already configured for Railway:
-   - `start.sh` ensures the app listens on the correct port.
-   - Dockerfile uses `CMD ["sh", "start.sh"]`.
-4. **Deploy!**
+1. Connect your repo to Railway
+2. Set environment variables (`PINECONE_API_KEY`, `CLAUDE_API_KEY`) in the Railway dashboard
+3. Deploy — Dockerfile and start.sh are pre-configured
 
 ---
 
-## API Documentation
+## API Reference
 
 ### POST `/query`
+
 Query the Pinecone index and generate an answer with Claude.
 
-**Request Body:**
+**Request:**
+
 ```json
 {
   "embedding": [0.1, 0.2, 0.3, ...],
@@ -105,6 +118,7 @@ Query the Pinecone index and generate an answer with Claude.
 ```
 
 **Response:**
+
 ```json
 {
   "answer": "The stations near your current location are: ...",
@@ -112,24 +126,13 @@ Query the Pinecone index and generate an answer with Claude.
 }
 ```
 
-#### Special Queries
-- "total number of crimes today"
-- "total number of traffic accidents today"
-- "safest line in the last 7 days"
-- "stations near me" or "closest station"
-
 ### GET `/health`
-Health check endpoint. Returns `{ "status": "healthy" }`.
+
+Health check. Returns `{ "status": "healthy" }`.
 
 ---
 
-## Python Client Scripts
-
-### Local API Example: `query_pinecone.py`
-Queries a locally running API.
-
-### Railway API Example: `railway_query_pinecone.py`
-Queries the deployed Railway API.
+## Python Client Example
 
 ```python
 import requests
@@ -140,27 +143,28 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 embedding = model.encode(question).tolist()
 
 response = requests.post(
-    "https://web-production-1e02.up.railway.app/query",
+    "https://your-railway-url.up.railway.app/query",
     json={"embedding": embedding, "top_k": 5, "question": question}
 )
-
 print(response.json())
 ```
 
 ---
 
-## Troubleshooting Railway Deployment
-- Ensure `start.sh` is executable (`git update-index --chmod=+x start.sh`)
-- All required environment variables must be set in Railway dashboard
-- Check logs for port or permission errors
-- Use `CMD ["sh", "start.sh"]` in Dockerfile
+## Stack
+
+`FastAPI` `Pinecone` `Claude API` `SentenceTransformers` `Docker` `Railway`
 
 ---
 
-## Contributing
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+## Related
+
+- [TransitGuard](https://github.com/foxintheloop/TransitGuard) — Main project overview
+- [transitguard-dashboard](https://github.com/foxintheloop/transitguard-dashboard) — Web dashboard
+- [transitguard-app](https://github.com/foxintheloop/transitguard-app) — Mobile app
 
 ---
 
 ## License
-MIT 
+
+MIT
